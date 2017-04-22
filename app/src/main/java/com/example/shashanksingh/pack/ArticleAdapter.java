@@ -131,7 +131,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.MyViewHo
                     loadArticle();
                     return true;
                 case R.id.action_delete_article:
-                    Toast.makeText(mContext, "Article Deleted", Toast.LENGTH_SHORT).show();
+                    deleteArticle();
                     return true;
                 default:
             }
@@ -193,6 +193,52 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.MyViewHo
                                     }
                                 }
                             });
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    mDialog.dismiss();
+                    Log.i("onErrorResponse", error.toString());
+                }
+            }) {
+                @Override
+                public String getBodyContentType() {
+                    return "application/x-www-form-urlencoded";
+                }
+
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String>  params = new HashMap<String, String>();
+                    params.put("Authorization", "Token " + token);
+
+                    return params;
+                }
+            };
+
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(30000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+            MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
+        }
+
+        public void deleteArticle() {
+            SharedPreferences sharedPreferences = mContext.getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+            final String token = sharedPreferences.getString("user_token", "");
+            String url = "https://nameless-lowlands-50285.herokuapp.com/api/article/" + id + "/delete/";
+
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.DELETE, url, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d(TAG, "onResponse: " + response.toString());
+                    try {
+                        if (response.getBoolean("success")) {
+                            mArticleList.remove(position);
+                            notifyItemRemoved(position);
+                            notifyDataSetChanged();
+                            Toast.makeText(mContext, "Article Deleted", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }, new Response.ErrorListener() {
                 @Override

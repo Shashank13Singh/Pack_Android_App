@@ -47,7 +47,9 @@ public class ArticlesDataSource {
     }
 
     public void deleteArticle(Article article) {
+        mDatabase = mDbHelper.getWritableDatabase();
         String id = article.getId();
+        Log.d(TAG, "deleteArticle: " + id);
         mDatabase.delete(MySQLiteHelper.TABLE_ARTICLE, MySQLiteHelper.COLUMN_ID + " = " + Integer.valueOf(id), null);
     }
 

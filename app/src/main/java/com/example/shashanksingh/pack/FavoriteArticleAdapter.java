@@ -86,6 +86,7 @@ public class FavoriteArticleAdapter extends RecyclerView.Adapter<FavoriteArticle
     class MyMenuItemClickListener implements PopupMenu.OnMenuItemClickListener {
 
         private int position;
+        private ArticlesDataSource mDataSource;
 
         public MyMenuItemClickListener(int position) {
             this.position = position;
@@ -99,12 +100,21 @@ public class FavoriteArticleAdapter extends RecyclerView.Adapter<FavoriteArticle
         public boolean onMenuItemClick(MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.action_remove_favourite:
-                    mDialog.show();
+                    removeArticle();
                     Toast.makeText(mContext, "Article removed from favourite", Toast.LENGTH_SHORT).show();
                     return true;
                 default:
             }
             return false;
+        }
+
+        public void removeArticle() {
+            mDataSource = new ArticlesDataSource(mContext);
+            Article article = mArticleList.get(position);
+            mDataSource.deleteArticle(article);
+            mArticleList.remove(position);
+            notifyItemRemoved(position);
+            notifyDataSetChanged();
         }
     }
 
