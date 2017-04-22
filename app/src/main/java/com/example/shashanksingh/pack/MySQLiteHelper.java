@@ -19,15 +19,14 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_IMAGE = "image";
 
     private static final String DATABASE_NAME = "articles.db";
-    private static final int DATABASE_VERSION = 1;
+    private static int DATABASE_VERSION = 1;
 
     private static final String DATABASE_CREATE = "create table "
-            + TABLE_ARTICLE + "( " + COLUMN_ID
-            + " text primary key, " + COLUMN_TITLE
-            + " text not null," + COLUMN_CONTENT
-            + " text not null," + COLUMN_SOURCE
-            + " text not null," + COLUMN_IMAGE
-            + " text not null);";
+            + TABLE_ARTICLE + "( " + COLUMN_ID + " integer primary key, "
+            + COLUMN_TITLE + " text not null, "
+            + COLUMN_CONTENT + " text not null, "
+            + COLUMN_SOURCE + " text not null, "
+            + COLUMN_IMAGE + " text not null);";
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

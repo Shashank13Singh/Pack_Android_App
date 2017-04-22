@@ -27,6 +27,8 @@
         </activity>
         <activity android:name=".DetailArticleActivity">
         </activity>
+        <activity android:name=".DetailFavouriteArticle">
+        </activity>
     </application>
 
 </manifest>

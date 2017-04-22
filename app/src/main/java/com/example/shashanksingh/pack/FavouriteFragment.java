@@ -5,9 +5,11 @@ import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +30,7 @@ public class FavouriteFragment extends Fragment {
     private FavoriteArticleAdapter mArticleAdapter;
     private RecyclerView mRecyclerView;
     private static final String TAG = "FavouriteFragment";
+    private SwipeRefreshLayout mRefreshLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,27 +41,44 @@ public class FavouriteFragment extends Fragment {
 
         mArticles = new ArrayList<>();
 
-        loadArticleList();
-
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
 
-        mArticleAdapter = new FavoriteArticleAdapter(getContext(), mArticles);
-        mRecyclerView.setAdapter(mArticleAdapter);
+        loadArticleList();
+
+        mAviLib.hide();
 
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getContext(), 1);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(1, dpToPx(10), true));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        mArticleAdapter = new FavoriteArticleAdapter(getContext(), mArticles);
+        mRecyclerView.setAdapter(mArticleAdapter);
+
+        Log.d(TAG, "onCreateView: " + mArticles.size());
+
         mRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getContext(), new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        Intent intent = new Intent(getActivity(), DetailArticleActivity.class);
-                        intent.putExtra("id", mArticles.get(position).getId());
+                        Intent intent = new Intent(getActivity(), DetailFavouriteArticle.class);
+                        intent.putExtra("title", mArticles.get(position).getTitle());
+                        intent.putExtra("body", mArticles.get(position).getBody());
+                        intent.putExtra("image", mArticles.get(position).getImage());
                         startActivity(intent);
                     }
                 }));
+
+        mRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefresh);
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadArticleList();
+                mArticleAdapter = new FavoriteArticleAdapter(getContext(), mArticles);
+                mRecyclerView.setAdapter(mArticleAdapter);
+                mRefreshLayout.setRefreshing(false);
+            }
+        });
 
         return rootView;
     }
@@ -66,7 +86,6 @@ public class FavouriteFragment extends Fragment {
 
         ArticlesDataSource dataSource = new ArticlesDataSource(getContext());
         mArticles = dataSource.getAllArticles();
-        mAviLib.hide();
     }
 
     public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {

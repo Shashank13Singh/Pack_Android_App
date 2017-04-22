@@ -1,10 +1,10 @@
 package com.example.shashanksingh.pack;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.Environment;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -103,15 +104,19 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.MyViewHo
 
         private ArticlesDataSource dataSource;
         private int position;
-        String id = mArticleList.get(position).getId();
-        String title = mArticleList.get(position).getTitle();
+        String id;
+        String title;
         String body;
         String source;
-        String image = mArticleList.get(position).getImage();
+        String image;
         String imageName = "";
 
         public MyMenuItemClickListener(int position) {
             this.position = position;
+            id = mArticleList.get(this.position).getId();
+            title = mArticleList.get(this.position).getTitle();
+            image = mArticleList.get(this.position).getImage();
+
             mDialog = new ACProgressFlower.Builder(mContext)
                     .direction(ACProgressConstant.DIRECT_CLOCKWISE)
                     .themeColor(Color.WHITE)
@@ -157,34 +162,37 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.MyViewHo
                             .into(new SimpleTarget<Bitmap>() {
                                 @Override
                                 public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+
+                                    String name = new Date().toString() + ".jpg";
+                                    Log.d(TAG, "onResourceReady: name = " + name);
+                                    imageName = imageName + name.replaceAll("\\s+", "");
+                                    Log.d(TAG, "onResourceReady: imageName = " + imageName);
+                                    ContextWrapper contextWrapper = new ContextWrapper(mContext);
+                                    File directory = contextWrapper.getDir("imageDir", Context.MODE_PRIVATE);
+
+                                    File myPath = new File(directory, imageName);
+
+                                    dataSource = new ArticlesDataSource(mContext);
+                                    Log.d(TAG, "onResponse: id: " + id);
+                                    dataSource.createArticle(id, title, body, source, imageName);
+                                    mDialog.dismiss();
+                                    Toast.makeText(mContext, "Added to favourite", Toast.LENGTH_SHORT).show();
+
+                                    FileOutputStream fileOutputStream = null;
                                     try {
-                                        String root = Environment.getExternalStorageDirectory().toString();
-                                        File myDir = new File(root + "/packData");
-
-                                        if (!myDir.exists()) {
-                                            myDir.mkdirs();
-                                        }
-
-                                        String name = new Date().toString() + ".jpg";
-                                        imageName = name;
-                                        Log.d(TAG, "onResourceReady: " + imageName);
-                                        myDir = new File(myDir, name);
-                                        FileOutputStream out = null;
-                                        out = new FileOutputStream(myDir);
-                                        resource.compress(Bitmap.CompressFormat.PNG, 90, out);
-                                        out.flush();
-                                        out.close();
+                                        fileOutputStream = new FileOutputStream(myPath);
+                                        resource.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
                                     } catch (Exception e) {
                                         e.printStackTrace();
+                                    } finally {
+                                        try {
+                                            fileOutputStream.close();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
                                     }
                                 }
                             });
-
-                    dataSource = new ArticlesDataSource(mContext);
-                    Log.d(TAG, "onResponse: id: " + id);
-                    dataSource.createArticle(id, title, body, source, imageName);
-                    mDialog.dismiss();
-                    Toast.makeText(mContext, "Added to favourite", Toast.LENGTH_SHORT).show();
                 }
             }, new Response.ErrorListener() {
                 @Override

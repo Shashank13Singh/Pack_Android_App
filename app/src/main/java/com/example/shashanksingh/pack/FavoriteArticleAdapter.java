@@ -1,8 +1,8 @@
 package com.example.shashanksingh.pack;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Color;
-import android.os.Environment;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import java.io.File;
 import java.util.List;
 
 import cc.cloudist.acplibrary.ACProgressConstant;
@@ -60,7 +61,10 @@ public class FavoriteArticleAdapter extends RecyclerView.Adapter<FavoriteArticle
         Article article = mArticleList.get(position);
         holder.title.setText(article.getTitle());
         String imageName = article.getImage();
-        String path = Environment.getExternalStorageDirectory().toString() + "/packData/" + imageName;
+        ContextWrapper contextWrapper = new ContextWrapper(mContext);
+        File directory = contextWrapper.getDir("imageDir", Context.MODE_PRIVATE);
+        String path = directory.getAbsolutePath();
+        path = path + "/" + imageName;
         Glide.with(mContext).load(path).into(holder.thumbnail);
 
         holder.overflow.setOnClickListener(new View.OnClickListener() {

@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -52,6 +53,7 @@ public class LibraryFragment extends Fragment {
     private ArticleAdapter mArticleAdapter;
     private RecyclerView mRecyclerView;
     private ImageView mBackdrop;
+    private SwipeRefreshLayout mRefreshLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -81,6 +83,15 @@ public class LibraryFragment extends Fragment {
                         startActivity(intent);
                     }
                 }));
+
+        mRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeRefresh);
+
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadArticleList();
+            }
+        });
 
         return rootView;
     }
@@ -116,6 +127,7 @@ public class LibraryFragment extends Fragment {
                         mRecyclerView.setAdapter(mArticleAdapter);
 
                         mAviLib.hide();
+                        mRefreshLayout.setRefreshing(false);
                     }
                 }, new Response.ErrorListener() {
 
