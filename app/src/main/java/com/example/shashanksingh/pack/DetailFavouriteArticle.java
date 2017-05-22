@@ -63,7 +63,7 @@ public class DetailFavouriteArticle extends AppCompatActivity{
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(DetailFavouriteArticle.this, MainActivity.class));
+                finish();
             }
         });
 

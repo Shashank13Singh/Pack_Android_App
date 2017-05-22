@@ -4,10 +4,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,7 +40,7 @@ public class DetailArticleActivity extends AppCompatActivity {
     ACProgressFlower mDialog;
     String mUrl = "https://nameless-lowlands-50285.herokuapp.com/api/article/";
     String mImageUrl;
-    String mTitle, mBody;
+    String mTitle, mBody, mSource;
     private Toolbar mToolbar;
     private TextView mArticleTitle, mContent;
     private ImageView mArticleImage;
@@ -65,7 +69,7 @@ public class DetailArticleActivity extends AppCompatActivity {
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(DetailArticleActivity.this, MainActivity.class));
+                finish();
             }
         });
 
@@ -94,6 +98,7 @@ public class DetailArticleActivity extends AppCompatActivity {
                     if (response.getBoolean("success")) {
                         mTitle = response.getString("title");
                         mBody = response.getString("content");
+                        mSource = response.getString("source");
                         mImageUrl = response.getString("image");
                     }
 
@@ -132,5 +137,41 @@ public class DetailArticleActivity extends AppCompatActivity {
 
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_detail, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.share:
+                share();
+                return true;
+            case R.id.source:
+                source();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void share() {
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mSource);
+        shareIntent.setType("text/plain");
+        startActivity(shareIntent);
+    }
+
+    public void source() {
+        Uri webPage = Uri.parse(mSource);
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, webPage);
+        startActivity(webIntent);
     }
 }

@@ -5,6 +5,14 @@ repositories {
 }
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'keystore'
+            keyPassword 'nfstherun'
+            storeFile file('E:/Programs/key.jks')
+            storePassword 'nfstherun'
+        }
+    }
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
     dataBinding {
@@ -22,15 +30,17 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile files('libs/tooleap-sdk-0.9.8.jar')
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.android.support:support-v4:25.2.0'

@@ -1,12 +1,16 @@
 package com.example.shashanksingh.pack;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -40,6 +44,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +55,8 @@ import static com.example.shashanksingh.pack.LandingActivity.MyPREFERENCES;
 
 public class MainActivity extends FragmentActivity implements AppCompatCallback {
 
-    private static int NUM_PAGES = 3;
+    private static int ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 5469;
+    private static int NUM_PAGES = 2;
     private ViewPager mPager;
     private PagerAdapter mPagerAdapter;
     private AppCompatDelegate mDelegate;
@@ -64,6 +70,8 @@ public class MainActivity extends FragmentActivity implements AppCompatCallback 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        checkPermission();
 
         mDelegate = AppCompatDelegate.create(this, this);
         mDelegate.onCreate(savedInstanceState);
@@ -124,7 +132,7 @@ public class MainActivity extends FragmentActivity implements AppCompatCallback 
 
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
 
-        private String[] tabTitles = new String[]{"Library", "Favourite", "Recommended"};
+        private String[] tabTitles = new String[]{"Library", "Favourite"};
 
         @Override
         public CharSequence getPageTitle(int position) {
@@ -142,8 +150,6 @@ public class MainActivity extends FragmentActivity implements AppCompatCallback 
                     return new LibraryFragment();
                 case 1:
                     return new FavouriteFragment();
-                case 2:
-                    return new RecommendedFragment();
                 default:
                     return new LibraryFragment();
             }
@@ -268,4 +274,26 @@ public class MainActivity extends FragmentActivity implements AppCompatCallback 
 
         MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest);
     }
+
+    public void checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE) {
+            if (!Settings.canDrawOverlays(this)) {
+                checkPermission();
+            }
+        }
+    }
+
 }

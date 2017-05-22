@@ -26,6 +26,8 @@
             android:textColor="#ffffff"
             android:layout_marginTop="5dp"
             android:paddingLeft="15dp"
+            android:imeOptions="actionNext"
+            
             android:textCursorDrawable="@null"
             android:layout_width="match_parent"
             android:layout_height="40dp"/>

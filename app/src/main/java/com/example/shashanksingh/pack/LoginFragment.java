@@ -8,11 +8,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -43,6 +46,7 @@ public class LoginFragment extends Fragment {
     
     EditText mUsername, mPassword;
     Button mLogin;
+    ACProgressFlower dialog;
     final String url = "https://nameless-lowlands-50285.herokuapp.com/api/article/login/";
 
     @Override
@@ -53,72 +57,98 @@ public class LoginFragment extends Fragment {
         mPassword = (EditText) rootView.findViewById(R.id.login_password_edit_text);
         mLogin = (Button) rootView.findViewById(R.id.login_button);
 
-        final ACProgressFlower dialog = new ACProgressFlower.Builder(getContext())
-                .direction(ACProgressConstant.DIRECT_CLOCKWISE)
-                .themeColor(Color.WHITE)
-                .fadeColor(Color.DKGRAY).build();
+        mUsername.setSingleLine();
 
+        mPassword.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                boolean handled = false;
+                if (i == EditorInfo.IME_ACTION_DONE || i == 66) {
+                    if (mUsername.getText() != null && mPassword.getText() != null) {
+                        dialog = new ACProgressFlower.Builder(getContext())
+                                .direction(ACProgressConstant.DIRECT_CLOCKWISE)
+                                .themeColor(Color.WHITE)
+                                .fadeColor(Color.DKGRAY).build();
+                        loadArticle();
+                        handled = true;
+                    }
+                }
+                return handled;
+            }
+        });
 
         mLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                dialog.show();
-
-                Map<String, String> stringMap = new HashMap<>();
-                stringMap.put("username", mUsername.getText().toString());
-                stringMap.put("password", mPassword.getText().toString());
-
-                Uri.Builder builder = new Uri.Builder();
-                Iterator entries = stringMap.entrySet().iterator();
-                while (entries.hasNext()) {
-                    Map.Entry entry = (Map.Entry) entries.next();
-                    builder.appendQueryParameter(entry.getKey().toString(), entry.getValue().toString());
-                    entries.remove();
+                if (mUsername.getText().length() > 0 && mPassword.getText().length() > 0) {
+                    dialog = new ACProgressFlower.Builder(getContext())
+                            .direction(ACProgressConstant.DIRECT_CLOCKWISE)
+                            .themeColor(Color.WHITE)
+                            .fadeColor(Color.DKGRAY).build();
+                    loadArticle();
                 }
-                final String requestBody = builder.build().getEncodedQuery();
-
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, requestBody, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(TAG, "onResponse: " + response.toString());
-                        try {
-                            if (response.getBoolean("success")) {
-                                sessionManager(response.getString("token"));
-                                Intent intent = new Intent(getActivity(), MainActivity.class);
-                                intent.putExtra("Username", response.getString("username"));
-                                intent.putExtra("Token", response.getString("token"));
-                                intent.putExtra("Email", response.getString("email"));
-                                intent.putExtra("Name", response.getString("name"));
-                                startActivity(intent);
-                                getActivity().finish();
-                                dialog.dismiss();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        dialog.dismiss();
-                        Log.i("onErrorResponse", error.toString());
-                        Toast.makeText(getActivity().getApplicationContext(), "Invalid Username or Password", Toast.LENGTH_LONG).show();
-                    }
-                }) {
-                    @Override
-                    public String getBodyContentType() {
-                        return "application/x-www-form-urlencoded";
-                    }
-                };
-
-                jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(30000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-                MySingleton.getInstance(getContext()).addToRequestQueue(jsonObjectRequest);
+                else {
+                    Toast.makeText(getContext(), "Username or password cannot be empty", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
         return rootView;
+    }
+
+    public void loadArticle() {
+        dialog.show();
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("username", mUsername.getText().toString());
+        stringMap.put("password", mPassword.getText().toString());
+
+        Uri.Builder builder = new Uri.Builder();
+        Iterator entries = stringMap.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry entry = (Map.Entry) entries.next();
+            builder.appendQueryParameter(entry.getKey().toString(), entry.getValue().toString());
+            entries.remove();
+        }
+        final String requestBody = builder.build().getEncodedQuery();
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, requestBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, "onResponse: " + response.toString());
+                try {
+                    if (response.getBoolean("success")) {
+                        sessionManager(response.getString("token"));
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        intent.putExtra("Username", response.getString("username"));
+                        intent.putExtra("Token", response.getString("token"));
+                        intent.putExtra("Email", response.getString("email"));
+                        intent.putExtra("Name", response.getString("name"));
+                        startActivity(intent);
+                        getActivity().finish();
+                        dialog.dismiss();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                dialog.dismiss();
+                Log.i("onErrorResponse", Integer.toString(error.networkResponse.statusCode));
+                Toast.makeText(getActivity().getApplicationContext(), "Invalid Username or Password", Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/x-www-form-urlencoded";
+            }
+        };
+
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(30000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        MySingleton.getInstance(getContext()).addToRequestQueue(jsonObjectRequest);
     }
 
     public void sessionManager(String token) {

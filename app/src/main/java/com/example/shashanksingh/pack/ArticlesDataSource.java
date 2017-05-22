@@ -39,10 +39,6 @@ public class ArticlesDataSource {
         long rowInserted = mDatabase.insert(MySQLiteHelper.TABLE_ARTICLE, null, values);
         Log.d(TAG, "createArticle: " + rowInserted);
 
-//        Cursor cursor = mDatabase.query(MySQLiteHelper.TABLE_ARTICLE, mAllArticles, null, null, null, null, null);
-//        cursor.moveToFirst();
-//        Article newArticle = cursorToArticle(cursor);
-//        cursor.close();
         mDbHelper.close();
     }
 

@@ -2,6 +2,7 @@ package com.example.shashanksingh.pack;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,7 +10,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,11 +52,6 @@ public class FavouriteFragment extends Fragment {
         mRecyclerView.addItemDecoration(new GridSpacingItemDecoration(1, dpToPx(10), true));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        mArticleAdapter = new FavoriteArticleAdapter(getContext(), mArticles);
-        mRecyclerView.setAdapter(mArticleAdapter);
-
-        Log.d(TAG, "onCreateView: " + mArticles.size());
-
         mRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(getContext(), new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
@@ -86,6 +81,9 @@ public class FavouriteFragment extends Fragment {
 
         ArticlesDataSource dataSource = new ArticlesDataSource(getContext());
         mArticles = dataSource.getAllArticles();
+
+        mArticleAdapter = new FavoriteArticleAdapter(getContext(), mArticles);
+        mRecyclerView.setAdapter(mArticleAdapter);
     }
 
     public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
